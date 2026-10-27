@@ -44,3 +44,10 @@ function errorResponese(res, message, data, status = null){
         success: false, message, data:null, error: details,
     })
 }
+
+const biodataSchema = Joi.object({
+    id: Joi.number().integer().positive(),
+    nama: Joi.string().trim().min(2).max(200).required(),
+    nim: Joi.string().trim().min(2).max(200).required(),
+    kelas: Joi.string().trim().min(2).max(200).required(),
+})
