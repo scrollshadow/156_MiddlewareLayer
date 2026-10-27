@@ -64,7 +64,7 @@ function validateBody(schema){
         if(error){
             return errorResponese(
                 res,
-                'validasi input gagal'<
+                'validasi input gagal',
                 400,
                 error.details.map(item=>({
                     field: item.path.join('.'),
@@ -76,3 +76,38 @@ function validateBody(schema){
         next()
     }
 }
+
+function validateParams(schema){
+    return(req, res, next) => {
+        const {error, value} = schema.validate(req.params);
+        if(error){
+            return errorResponese(
+                res,
+                'parameter tidak valid',
+                400,
+                error.details.map(item=>({
+                    field: item.path.join('.'),
+                    message: item.message,
+                }))
+            )
+        }
+        req.params = value,
+        next()
+    }
+}
+
+app.get('/', async(req, res) => {
+    const result = await pool.query('select * from biodata order by id')
+    return successResponese(res, 'data berhasil diambil', result.rows)
+})
+
+app.post('/biodata', validateBody(biodataSchema), async(req, res)=>{
+    const{id, nama, nim, kelas} = req.body
+    const result = await pool.query(
+        `insert into biodata (id, nama, nim, kelas)
+        values ($1, $2, $3, $4)
+        returning *`
+        [id?? null, nama, nim, kelas]
+    )
+    
+})
