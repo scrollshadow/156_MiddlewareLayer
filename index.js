@@ -26,7 +26,7 @@ app.use((req, res, next) =>{
         console.log({
             method: req.method,
             url: req.originalUrl,
-            statusCode: req.statusCode,
+            statusCode: res.statusCode,
             duration: `${duration} ms`
         })
     })
@@ -39,7 +39,7 @@ function successResponese(res, message, data, status = 200){
     })
 }
 
-function errorResponese(res, message, data, status = null){
+function errorResponese(res, message, status = 500, details = null){
     return res.status(status).json({
         success: false, message, data:null, error: details,
     })
@@ -106,7 +106,7 @@ app.post('/biodata', validateBody(biodataSchema), async(req, res)=>{
     const result = await pool.query(
         `insert into biodata (id, nama, nim, kelas)
         values ($1, $2, $3, $4)
-        returning *`
+        returning *`,
         [id?? null, nama, nim, kelas]
     )
     return successResponese(res, 'data berhasil ditambahkan', result.rows[0], 201)
@@ -132,12 +132,12 @@ app.put(
         )
 
         if (result.rowCount === 0) {
-            return errorResponse(
+            return errorResponese(
                 res, 'Data tidak ditemukan', 404
             )
         }
 
-        return susccessResponse(
+        return successResponese(
             res,
             'Data berhasil diupdate',
             result.rows[0]
@@ -157,12 +157,12 @@ app.delete(
         )
 
         if (result.rowCount === 0) {
-            return errorResponce(
+            return errorResponese(
                 res, 'Data tidak ditemukan', 404
             )
         }
 
-        return susccessResponse(
+        return successResponese(
             res,
             'Data berhasil dihapus',
             result.rows[0]
@@ -171,7 +171,7 @@ app.delete(
 )
 
 app.use((req, res) => {
-    return errorResponce(
+    return errorResponese(
         res,
         'Endpoint tidak ditemukan',
         404
@@ -182,11 +182,11 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
     console.error(err)
 
-    if (res.headerSent){
+    if (res.headersSent){
         return next(err)
     }
 
-    return errorResponce(
+    return errorResponese(
         res,
         'Terjadi kesalahan pada server',
         500
