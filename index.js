@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from 'express';
 import pg from "pg";
-import Joi from "joi";
+import Joi, { allow } from "joi";
 
 const app = express()
 const port = process.env.PORT 
@@ -55,3 +55,24 @@ const biodataSchema = Joi.object({
 const idSchema = Joi.object({
     id: Joi.number().integer().positive().required(),
 })
+
+function validateBody(schema){
+    return(req, res, next) => {
+        const {error, value} = schema.validate(req.body, {
+            abortEarly:false, convert : true, allowUnknown: false
+        });
+        if(error){
+            return errorResponese(
+                res,
+                'validasi input gagal'<
+                400,
+                error.details.map(item=>({
+                    field: item.path.join('.'),
+                    message: item.message,
+                }))
+            )
+        }
+        req.body = value,
+        next()
+    }
+}
