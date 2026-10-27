@@ -109,5 +109,5 @@ app.post('/biodata', validateBody(biodataSchema), async(req, res)=>{
         returning *`
         [id?? null, nama, nim, kelas]
     )
-    
+    return successResponese(res, 'data berhasil ditambahkan', result.rows[0], 201)
 })
