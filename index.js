@@ -102,14 +102,19 @@ app.get('/', async(req, res) => {
 })
 
 app.post('/biodata', validateBody(biodataSchema), async(req, res)=>{
-    const{id, nama, nim, kelas} = req.body
-    const result = await pool.query(
-        `insert into biodata (id, nama, nim, kelas)
-        values ($1, $2, $3, $4)
-        returning *`,
-        [id?? null, nama, nim, kelas]
-    )
-    return successResponese(res, 'data berhasil ditambahkan', result.rows[0], 201)
+    try {
+        const{ nama, nim, kelas} = req.body
+        const result = await pool.query(
+            `insert into biodata (nama, nim, kelas)
+            values ($1, $2, $3)
+            returning *`,
+            [nama, nim, kelas]
+        )
+        return successResponese(res, 'data berhasil ditambahkan', result.rows[0], 201)
+    } catch (err) {
+        console.error('POST /biodata error:', err)
+        return errorResponese(res, 'Gagal menambahkan data', 500, err.message)
+    }
 })
 
 app.put(
@@ -189,7 +194,8 @@ app.use((err, req, res, next) => {
     return errorResponese(
         res,
         'Terjadi kesalahan pada server',
-        500
+        500,
+        err.message
     )
 })
 
